@@ -1,0 +1,443 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+  objects = {
+
+/* Begin PBXBuildFile section */
+<%if(!custom_only)%>
+    <%uid_outputfile%> /* <%if(exename)%><%exename%><%else%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%dll_ext%><%endif%><%endif%> in CopyFiles */ = {isa = PBXBuildFile; fileRef = <%uid_output_fileref%> /* <%if(exename)%><%exename%><%else%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%> */; };
+<%endif%>
+<%foreach(source_files)%>
+    <%genuid_source_buildfile%> /* <%source_file%> in Source Files */ = {isa = PBXBuildFile; fileRef = <%genuid_source_fileref%> /* <%source_file%> */; };
+<%endfor%>
+<%foreach(libs)%>
+		<%genuid_framework_buildfile%> /* <%lib_prefix%><%lib%><%dll_ext%> in Frameworks */ = {isa = PBXBuildFile; fileRef = <%genuid_framework_fileref%> /* <%lib_prefix%><%lib%><%dll_ext%> */; };
+<%endfor%>
+<%foreach(lit_libs)%>
+		<%genuid_framework_buildfile%> /* <%lib_prefix%><%lit_lib%><%dll_ext%> in Frameworks */ = {isa = PBXBuildFile; fileRef = <%genuid_framework_fileref%> /* <%lib_prefix%><%lit_lib%><%dll_ext%> */; };
+<%endfor%>
+<%foreach(pure_libs)%>
+		<%genuid_framework_buildfile%> /* <%pure_lib%> in Frameworks */ = {isa = PBXBuildFile; fileRef = <%genuid_framework_fileref%> /* <%pure_lib%> */; };
+<%endfor%>
+<%foreach(custom_types)%>
+<%if(custom_type->command)%>
+<%foreach(custom_type->input_files)%>
+		<%genuid_custom_buildfile%> /* <%custom_type->input_file%> in Sources */ = {isa = PBXBuildFile; fileRef = <%genuid_custom_fileref%> /* <%custom_type->input_file%> */; };
+<%endfor%>
+<%else%>
+<%foreach(custom_type->input_files)%>
+        <%genuid_custom_buildfile_placeholder%> <%genuid_custom_fileref_placeholder%>
+<%endfor%>
+<%endif%>
+<%endfor%>
+/* End PBXBuildFile section */
+
+/* Begin PBXBuildRule section */
+<%foreach(custom_types)%>
+<%if(custom_type->command)%>
+<%foreach(custom_type->input_files)%>
+		<%genuid_buildrule%> /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "<%full_path(custom_type->input_file)%>";
+			fileType = pattern.proxy;
+			isEditable = 1;
+            name = "<%ucw(custom_type)%> : <%custom_type->input_file%>";
+			outputFiles = (
+<%foreach(custom_type->input_file->output_files)%>
+              <%if(flag_overrides(custom_type->input_file, gendir))%><%flag_overrides(custom_type->input_file, gendir)%>/<%basename(custom_type->input_file->output_file)%><%else%><%custom_type->input_file->output_file%><%endif%>,
+<%endfor%>
+			);
+			script = "<%if(custom_type->libpath)%>DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH}:<%translate_vars(custom_type->libpath)%>\n<%endif%><%if(flag_overrides(custom_type->input_file, gendir))%>[ ! -d \"<%flag_overrides(custom_type->input_file, gendir)%>\"] && mkdir <%flag_overrides(custom_type->input_file, gendir)%>\n<%endif%><%if(flag_overrides(custom_type->input_file, command))%><%translate_vars(flag_overrides(custom_type->input_file, command))%><%else%><%translate_vars(custom_type->command)%><%endif%> <%if(flag_overrides(custom_type->input_file, commandflags))%><%flag_overrides(custom_type->input_file, commandflags)%><%else%><%custom_type->commandflags%><%endif%> <%if(custom_type->output_option)%>\"${INPUT_FILE_PATH}\" <%custom_type->output_option%><%foreach(custom_type->input_file->output_files)%> \"<%if(flag_overrides(custom_type->input_file, gendir))%><%flag_overrides(custom_type->input_file, gendir)%>/<%basename(custom_type->input_file->output_file)%><%else%><%custom_type->input_file->output_file%><%endif%>\"<%endfor%><%else%>\"${INPUT_FILE_PATH}\"<%endif%><%if(flag_overrides(custom_type->input_file, postcommand))%><%foreach(custom_type->input_file)%> && <%flag_overrides(custom_type->input_file, postcommand)%><%endfor%><%else%><%if(custom_type->postcommand)%><%foreach(custom_type->input_file)%> && <%custom_type->postcommand%><%endfor%><%endif%><%endif%><%if(pch_header)%><%if(custom_type->pch_postrule)%><%foreach(custom_type->input_file->source_output_files)%> && echo #include \"<%pch_header%>\" > temporary.src && type \"<%if(flag_overrides(custom_type->input_file, gendir))%><%flag_overrides(custom_type->input_file, gendir)%>/<%basename(custom_type->input_file->source_output_file)%><%else%><%custom_type->input_file->source_output_file%><%endif%>\" >> temporary.src && move /y temporary.src \"<%if(flag_overrides(custom_type->input_file, gendir))%><%flag_overrides(custom_type->input_file, gendir)%>/<%basename(custom_type->input_file->source_output_file)%><%else%><%custom_type->input_file->source_output_file%><%endif%\"<%endfor%><%endif%><%endif%>";
+		};
+<%endfor%>
+<%else%>
+		<%genuid_buildrule%> /* PBXBuildRule */ = {
+			isa = PBXBuildRule;
+			compilerSpec = com.apple.compilers.proxy.script;
+			filePatterns = "<%if(custom_type->inputexts)%>*.<%subst(custom_type->inputexts, \s+, \s*.)%><%endif%>";
+			fileType = pattern.proxy;
+			isEditable = 1;
+            name = "<%ucw(custom_type)%>";
+			outputFiles = (
+			);
+		};
+<%endif%>
+<%endfor%>
+
+/* End PBXBuildRule section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		<%uid_copyfiles%> /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "<%if(exename)%><%full_path(install)%><%else%><%if(sharedname)%><%if(dllout)%><%full_path(dllout)%><%else%><%full_path(libout)%><%endif%><%else%><%full_path(libout)%><%endif%><%endif%>";
+			dstSubfolderSpec = 0;
+			files = (
+<%if(!custom_only)%>
+				<%uid_outputfile%> /* <%if(exename)%><%exename%><%exe_ext%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%> in CopyFiles */,
+<%endif%>
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+<%if(!custom_only)%>
+		<%uid_output_fileref%> /* <%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%> */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.<%if(exename)%>executable<%else%><%if(sharedname)%>dylib<%else%>a<%endif%><%endif%>"; includeInIndex = 0; path = "<%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%>"; sourceTree = BUILT_PRODUCTS_DIR; };
+<%endif%>
+<%foreach(source_files)%>
+		<%getuid_source_fileref%> /* <%source_file%> */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "<%source_file%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(header_files)%>
+		<%getuid_header_fileref%> /* <%header_file%> */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "<%header_file%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(inline_files)%>
+		<%getuid_inline_fileref%> /* <%inline_file%> */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = "<%inline_file%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(template_files)%>
+		<%getuid_template_fileref%> /* <%template_file%> */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "<%template_file%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(libs)%>
+		<%getuid_framework_fileref%> /* <%lib_prefix%><%lib%><%dll_ext%> */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "<%lib_prefix%><%lib%><%dll_ext%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(lit_libs)%>
+		<%getuid_framework_fileref%> /* <%lib_prefix%><%lit_lib%><%dll_ext%> */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "<%lib_prefix%><%lit_lib%><%dll_ext%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(pure_libs)%>
+		<%getuid_framework_fileref%> /* <%pure_lib%> */ = {isa = PBXFileReference; lastKnownFileType = "<%if(ends_with(pure_lib,\.dylib))%>compiled.mach-o.dylib<%else%>archive.ar<%endif%>"; name = "<%pure_lib%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%foreach(custom_types)%>
+<%foreach(custom_type->input_files)%>
+        <%getuid_custom_fileref%> /* <%custom_type->input_file%> */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "<%custom_type->input_file%>"; sourceTree = "<group>"; };
+<%endfor%>
+<%endfor%>
+/* End PBXFileReference section */
+
+<%if(libs || lit_libs || pure_libs)%>
+/* Begin PBXFrameworksBuildPhase section */
+		<%uid_frameworks%> /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+<%foreach(libs)%>
+				<%getuid_framework_buildfile%> /* <%lib_prefix%><%lib%><%dll_ext%> in Frameworks */,
+<%endfor%>
+<%foreach(lit_libs)%>
+				<%getuid_framework_buildfile%> /* <%lib_prefix%><%lit_lib%><%dll_ext%> in Frameworks */,
+<%endfor%>
+<%foreach(pure_libs)%>
+				<%getuid_framework_buildfile%> /* <%pure_lib%> in Frameworks */,
+<%endfor%>
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+<%endif%>
+
+/* Begin PBXGroup section */
+ 		<%uid_pbxgroup%> = {
+			isa = PBXGroup;
+			children = (
+<%foreach(libs)%>
+        <%getuid_framework%> /* <%lib_prefix%><%lib%><%dll_ext%> */,
+<%endfor%>
+<%foreach(lit_libs)%>
+        <%getuid_framework%> /* <%lib_prefix%><%lit_lib%><%dll_ext%> */,
+<%endfor%>
+<%foreach(pure_libs)%>
+        <%getuid_framework%> /* <%pure_lib%> */,
+<%endfor%>
+<%if(source_files)%>
+				<%uid_project_group%> /* Source Files */,
+<%endif%>
+<%if(header_files)%>
+        <%uid_header_files%> /* Header Files */,
+<%endif%>
+<%if(inline_files)%>
+        <%uid_inline_files%> /* Inline Files */,
+<%endif%>
+<%if(template_files)%>
+        <%uid_template_files%> /* Template Files */,
+<%endif%>
+				<%uid_products%> /* Products */,
+<%foreach(custom_types)%>
+                <%genuid_custom_type%> /* <%ucw(custom_type)%> */ ,
+<%endfor%>
+			);
+			sourceTree = "<group>";
+		};
+		<%uid_products%> /* Products */ = {
+			isa = PBXGroup;
+			children = (
+<%if(!custom_only)%>
+				<%uid_output_fileref%> /* <%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%> */,
+<%endif%>
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+<%if(source_files)%>
+		<%uid_project_group%> /* Source Files */ = {
+			isa = PBXGroup;
+			children = (
+      <%foreach(source_files)%>
+        <%getuid_sourcefile%> /* <%source_file%> */,
+      <%endfor%>
+			);
+			name = "Source Files";
+			sourceTree = SOURCE_ROOT;
+		};
+<%endif%>
+<%if(header_files)%>
+		<%uid_header_files%> /* Header Files */ = {
+			isa = PBXGroup;
+			children = (
+      <%foreach(header_files)%>
+        <%getuid_headerfile%> /* <%header_file%> */,
+      <%endfor%>
+			);
+			name = "Header Files";
+			sourceTree = SOURCE_ROOT;
+		};
+<%endif%>
+<%if(inline_files)%>
+		<%uid_inline_files%> /* Inline Files */ = {
+			isa = PBXGroup;
+			children = (
+      <%foreach(inline_files)%>
+        <%getuid_inlinefile%> /* <%inline_file%> */,
+      <%endfor%>
+			);
+			name = "Inline Files";
+			sourceTree = SOURCE_ROOT;
+		};
+<%endif%>
+<%if(template_files)%>
+		<%uid_template_files%> /* Template Files */ = {
+			isa = PBXGroup;
+			children = (
+      <%foreach(template_files)%>
+        <%getuid_templatefile%> /* <%template_file%> */,
+      <%endfor%>
+			);
+			name = "Template Files";
+			sourceTree = SOURCE_ROOT;
+		};
+<%endif%>
+<%foreach(custom_types)%>
+		<%getuid_custom_type%> /* <%ucw(custom_type)%> */ = {
+			isa = PBXGroup;
+			children = (
+<%foreach(custom_type->input_files)%>
+              <%getuid_customfile%> /* <%custom_type->input_file%> */,
+<%endfor%>
+			);
+			name = "<%ucw(custom_type)%>";
+			sourceTree = SOURCE_ROOT;
+		};
+<%endfor%>
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		<%uid_PBXNativeTarget%> /* <%project_name%> */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = <%uid_pbxnativetarget_configlist%> /* Build configuration list for PBXNativeTarget "<%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%>" */;
+			buildPhases = (
+				<%uid_sources%> /* Source Files */,
+<%if(libs || lit_libs || pure_libs)%>
+				<%uid_frameworks%> /* Frameworks */,
+<%endif%>
+<%if(install || dllout || libout)%>
+        <%uid_copyfiles%> /* CopyFiles */,
+<%endif%>
+			);
+			buildRules = (
+<%foreach(custom_types)%>
+<%if(custom_type->command)%>
+<%foreach(custom_type->input_files)%>
+			  <%getuid_buildrule%> /* <%ucw(custom_type)%> : <%custom_type->input_file%> */,
+<%endfor%>
+<%else%>
+			  <%getuid_buildrule%> /* <%ucw(custom_type)%> */,
+<%endif%>
+<%endfor%>
+			);
+			dependencies = (
+			);
+			name = "<%project_name%>";
+			productName = "<%project_name%>";
+<%if(!custom_only)%>
+			productReference = <%uid_output_fileref%> /* <%project_name%> */;
+<%endif%>
+			productType = "com.apple.product-type.<%if(exename || custom_only)%>tool<%else%>library.<%if(sharedname)%>dynamic<%else%>static<%endif%><%endif%>";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		<%uid_pbxproject%> /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0500;
+				ORGANIZATIONNAME = "<%organization_name%>";
+			};
+			buildConfigurationList = <%uid_pbxproject_configlist%> /* Build configuration list for PBXProject "<%project_name%>" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = <%development_region(English)%>;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = <%uid_pbxgroup%>;
+			productRefGroup = <%uid_products%> /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				<%uid_PBXNativeTarget%> /* <%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%> */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		<%uid_sources%> /* Source Files */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+<%foreach(source_files)%>
+              <%getuid_source_buildfile%> /* <%source_file%> in Source Files */,
+<%endfor%>
+<%foreach(custom_types)%>
+<%if(custom_type->command)%>
+<%foreach(custom_type->input_files)%>
+              <%getuid_custom_buildfile%> /* <%custom_type->input_file%> in <%ucw(custom_type)%> */, 
+<%endfor%>
+<%else%>
+<%foreach(custom_type->input_files)%>
+              <%getuid_custom_buildfile_placeholder%>
+<%endfor%>
+<%endif%>
+<%endfor%>
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+<%foreach(configurations)%>
+		<%genuid_pbxproject_config%> /* <%configuration%> */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+<%if(version)%>CURRENT_PROJECT_VERSION = <%version%>;<%endif%>
+				ALWAYS_SEARCH_USER_PATHS = <%if(search_user_paths)%>YES<%else%>NO<%endif%>;
+				CLANG_CXX_LANGUAGE_STANDARD = "<%cxx_language_std(gnu++0x)%>";
+				CLANG_CXX_LIBRARY = "<%cxx_library(libc++)%>";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = <%if(dead_code_stripping)%>YES<%else%>NO<%endif%>;
+				DEBUG_INFORMATION_FORMAT = <%debug_info_format%>;
+				GCC_STRICT_ALIASING = <%if(strict_aliasing)%>YES<%else%>NO<%endif%>;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = <%if(debug_symbols)%>YES<%else%>NO<%endif%>;
+				GCC_OPTIMIZATION_LEVEL = <%optimize(0)%>;
+<%if(defines || macros)%>
+				GCC_PREPROCESSOR_DEFINITIONS = (
+<%foreach(defines)%>
+          "<%define%>",
+<%endfor%>
+<%foreach(macros)%>
+          "<%macro%>",
+<%endfor%>
+<%endif%>
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+                INSTALL_PATH = "<%if(exename)%><%install%><%else%><%if(sharedname)%><%dllout%><%else%><%libout%><%endif%><%endif%>";
+				MACOSX_DEPLOYMENT_TARGET = <%development_target%>;
+				ONLY_ACTIVE_ARCH = YES;
+	  		    LIBRARY_SEARCH_PATHS = (
+<%foreach(libpaths)%>
+				  "<%libpath%>",
+<%endfor%>
+				);
+        LINK_WITH_STANDARD_LIBRARIES = <%if(link_with_stdlibs)%>YES<%else%>NO<%endif%>;
+				LLVM_LTO = <%if(link_time_optimize)%>YES<%else%>NO<%endif%>;
+				SDKROOT = macosx;
+        <%if(linkflags)%>OTHER_LDFLAGS = "<%linkflags%>";<%endif%>
+			};
+			name = "<%configuration%>";
+		};
+<%endfor%>
+<%foreach(configurations)%>
+    <%genuid_pbxnativetarget_config%> /* <%configuration%> */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+<%if(sys_includes)%>
+      HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
+<%foreach(sys_includes)%>
+					"<%sys_include%>",
+<%endfor%>
+			);
+<%endif%>
+
+        EXECUTABLE_EXTENSION = "<%if(exename)%><%substr(exe_ext, 1)%><%else%><%if(sharedname)%><%substr(dll_ext, 1)%><%else%><%substr(lib_ext, 1)%><%endif%><%endif%>";
+<%if(sharedname || staticname)%>
+				EXECUTABLE_PREFIX = "<%lib_prefix%>";
+<%if(sharedname)%>
+        LD_DYLIB_INSTALL_NAME = "<%lib_prefix%><%sharedname%><%dll_ext%>";
+<%endif%>
+<%endif%>
+        PRODUCT_NAME = "<%project_name%>";
+<%if(includes)%>
+        USER_HEADER_SEARCH_PATHS = "<%foreach(includes)%><%include%><%fornotlast(" ")%><%endfor%>";
+<%endif%>
+			};
+			name = "<%configuration%>";
+		};
+<%endfor%>
+
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		<%uid_pbxproject_configlist%> /* Build configuration list for PBXProject "<%project_name%>" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+<%foreach(configurations)%>
+        <%getuid_pbxproject_config%> /* <%configuration%> */ ,
+<%endfor%>
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		<%uid_pbxnativetarget_configlist%> /* Build configuration list for PBXNativeTarget "<%if(exename)%><%exename%><%else%><%lib_prefix%><%if(sharedname)%><%sharedname%><%dll_ext%><%else%><%staticname%><%lib_ext%><%endif%><%endif%>" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+<%foreach(configurations)%>
+        <%getuid_pbxnativetarget_config%> /* <%configuration%> */ ,
+<%endfor%>
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = <%uid_pbxproject%> /* Project object */;
+}

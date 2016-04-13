@@ -1,0 +1,28 @@
+// -*- MPC -*-
+// $Id$
+
+conditional_include "common"
+conditional_include "xcodecommon"
+
+development_target = 10.8
+search_user_paths  = 
+link_with_stdlibs  = 1
+configurations     = Debug Release
+
+Debug {
+  debug_symbols       = 1
+  optimize            = 0
+  link_time_optimize  =
+  defines             = $(inherited) DEBUG=1
+  dead_code_stripping =
+  debug_info_format   = dwarf
+}
+
+Release {
+  debug_symbols       =
+  optimize            = fast
+  defines             = $(inherited)
+  link_time_optimize  = 1
+  dead_code_stripping = 1
+  debug_info_format   = dwarf-with-dsym
+}
